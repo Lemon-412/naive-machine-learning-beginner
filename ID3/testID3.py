@@ -10,3 +10,4 @@ if __name__ == '__main__':
     id3 = ID3(x, y, label)
     id3.generate_tree()
     print(id3)
+    # print(id3.inference())
