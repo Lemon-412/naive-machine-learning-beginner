@@ -50,7 +50,7 @@ class NaiveBayes:
             self.__py[y] += 1  # 先用于计数
             for i in range(self.__n):
                 if self.__is_continuous[i]:
-                    self.__mean[y] += 1  # 先用于计数
+                    self.__mean[y][i] += x[i]  # 先用于求和
                 else:
                     # print(f"y:{y} i:{i} x[i]:{x[i]} ")
                     self.__pyx[y][i][x[i]] += 1  # 先用于计数
@@ -58,7 +58,7 @@ class NaiveBayes:
         for y in range(self.__ny):
             for i in range(self.__n):
                 if self.__is_continuous[i]:
-                    self.__mean[y] /= self.__py[y]  # 转化为均值
+                    self.__mean[y][i] /= self.__py[y]  # 转化为均值
                 else:
                     self.__pyx[y][i] /= self.__py[y] + self.__nx[i]   # 后转化为修正后的频率
 
@@ -73,6 +73,13 @@ class NaiveBayes:
         self.__py += 1  # 进行修正
         self.__py /= self.__m + self.__ny  # 后转化为修正后的频率
 
+        print("============================")
+        print(f"py: {self.__py}")
+        print(f"pyx: {self.__pyx}")
+        print(f"mean: {self.__mean}")
+        print(f"variance: {self.__variance}")
+        print("============================")
+
     def inference(self, inference_x):
         assert len(inference_x) == self.__n
         best_ans, best_val = None, None
@@ -80,10 +87,11 @@ class NaiveBayes:
             cur_val = np.log(self.__py[y])
             for i in range(self.__n):
                 if self.__is_continuous[i]:
-                    cur_val -= (np.log(2 * np.pi) + self.__variance[y][i]) / 2
+                    cur_val -= (np.log(2 * np.pi) + np.log(self.__variance[y][i])) / 2
                     cur_val -= (self.__mean[y][i] - inference_x[i]) ** 2 / (2 * self.__variance[y][i])
                 else:
                     cur_val += np.log(self.__pyx[y][i][inference_x[i]])
+            print(f"y={y} ({cur_val})")
             if best_val is None or cur_val > best_val:
                 best_val = cur_val
                 best_ans = y
