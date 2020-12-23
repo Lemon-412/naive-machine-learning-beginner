@@ -73,12 +73,12 @@ class NaiveBayes:
         self.__py += 1  # 进行修正
         self.__py /= self.__m + self.__ny  # 后转化为修正后的频率
 
-        print("============================")
-        print(f"py: {self.__py}")
-        print(f"pyx: {self.__pyx}")
-        print(f"mean: {self.__mean}")
-        print(f"variance: {self.__variance}")
-        print("============================")
+        # print("============================")
+        # print(f"py: {self.__py}")
+        # print(f"pyx: {self.__pyx}")
+        # print(f"mean: {self.__mean}")
+        # print(f"variance: {self.__variance}")
+        # print("============================")
 
     def inference(self, inference_x):
         assert len(inference_x) == self.__n
@@ -91,7 +91,7 @@ class NaiveBayes:
                     cur_val -= (self.__mean[y][i] - inference_x[i]) ** 2 / (2 * self.__variance[y][i])
                 else:
                     cur_val += np.log(self.__pyx[y][i][inference_x[i]])
-            print(f"y={y} ({cur_val})")
+            # print(f"y={y} ({cur_val})")
             if best_val is None or cur_val > best_val:
                 best_val = cur_val
                 best_ans = y
