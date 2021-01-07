@@ -1,8 +1,8 @@
 from NaiveBayes import NaiveBayes
-import numpy
+import numpy as np
 
 if __name__ == '__main__':
-    x = numpy.array([
+    x = np.array([
         [0, 0, 0, 0, 0, 0, 0.697, 0.460],
         [1, 0, 1, 0, 0, 0, 0.774, 0.376],
         [1, 0, 0, 0, 0, 0, 0.634, 0.264],
@@ -21,7 +21,7 @@ if __name__ == '__main__':
         [2, 0, 0, 2, 2, 0, 0.593, 0.042],
         [0, 0, 1, 1, 1, 0, 0.719, 0.103],
     ], dtype=object)
-    y = numpy.array([1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+    y = np.array([1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0])
     is_continuous = [False, False, False, False, False, False, True, True]
     naive_bayes = NaiveBayes(x, y, is_continuous)
     naive_bayes.train()

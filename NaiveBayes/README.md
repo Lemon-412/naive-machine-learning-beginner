@@ -76,3 +76,5 @@ $P \left( c\right)= \frac{ \left| D_c \right| + 1}{\left|D\right| + N}$ ，$P\le
 
 根据$g\left( \boldsymbol x \right)$排序可以绘制ROC曲线。
 
+对于多分类问题，可以考虑将概率进行normalization后排序。
+

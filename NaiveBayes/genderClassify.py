@@ -1,5 +1,6 @@
 from NaiveBayes import NaiveBayes
 import plotly.express as px
+import plotly.graph_objects as go
 import numpy as np
 import pandas as pd
 from types import MethodType
@@ -25,6 +26,9 @@ def cross_validation(x, y, is_continuous):
 
 
 def inference(self, inference_x):
+    """
+    重写类内inference函数，用于绘制ROC曲线
+    """
     assert len(inference_x) == self._NaiveBayes__n
     val_0 = np.log(self._NaiveBayes__py[0])
     for i in range(self._NaiveBayes__n):
@@ -68,36 +72,46 @@ def main():
     print(f"accuracy using 3 features: {acc * 100}%")
 
     print("=================================================")
-    train_x = np.array(raw_data.iloc[:4, 2:3])
-    train_y = np.array(np.array(raw_data.iloc[:4, :]).T[0].T, dtype=int)
-    inference_x = np.array(raw_data.iloc[4:, 2:3])
-    inference_y = np.array(np.array(raw_data.iloc[4:, :]).T[0].T, dtype=int)
-    is_continuous = [True]
-    naive_bayes = NaiveBayes(train_x, train_y, is_continuous)
-    naive_bayes.inference = MethodType(inference, naive_bayes)
-    naive_bayes.train()
-    ans = []
-    tot, cnt = [0, 0], [0, 0]
-    for x_i, y_i in zip(inference_x, inference_y):
-        ans.append([naive_bayes.inference(x_i), y_i])
-        tot[y_i] += 1
-    ans.sort()
-    plot_x, plot_y = [0], [0]
-    for elem in ans:
-        cnt[elem[1]] += 1
-        plot_x.append(cnt[0] / tot[0])
-        plot_y.append(cnt[1] / tot[1])
-    fig = px.area(
-        x=plot_x, y=plot_y,
-        title="ROC curve",
-        labels=dict(x="False Positive Rate", y="True Positive Rate"),
-    )
+    fig = go.Figure()
     fig.add_shape(
         type="line", line=dict(dash="dash"),
         x0=0, x1=1, y0=0, y1=1,
     )
+    for i in range(1, 4):
+        train_x = np.array(raw_data.iloc[:20, i:i + 1])
+        train_y = np.array(np.array(raw_data.iloc[:20, :]).T[0].T, dtype=int)
+        inference_x = np.array(raw_data.iloc[20:, i:i + 1])
+        inference_y = np.array(np.array(raw_data.iloc[20:, :]).T[0].T, dtype=int)
+        is_continuous = [True]
+        naive_bayes = NaiveBayes(train_x, train_y, is_continuous)
+        naive_bayes.inference = MethodType(inference, naive_bayes)
+        naive_bayes.train()
+        ans = []
+        tot, cnt = [0, 0], [0, 0]
+        for x_i, y_i in zip(inference_x, inference_y):
+            ans.append([naive_bayes.inference(x_i), y_i])
+            tot[y_i] += 1
+        ans.sort()
+        auc = 0.0
+        plot_x, plot_y = [0], [0]
+        for elem in ans:
+            cnt[elem[1]] += 1
+            plot_x.append(cnt[0] / tot[0])
+            plot_y.append(cnt[1] / tot[1])
+            if plot_x[-1] != plot_x[-2]:
+                auc += (plot_x[-1] - plot_x[-2]) * plot_y[-1]
+        fig.add_trace(go.Scatter(
+            x=plot_x, y=plot_y,
+            name=f"feature {i} (AUC={auc})",
+            mode="lines",
+        ))
     fig.update_yaxes(scaleanchor="x", scaleratio=1)
     fig.update_xaxes(constrain='domain')
+    fig.update_layout(
+        xaxis_title="False Positive Rate",
+        yaxis_title="True Positive Rate",
+        title="ROC curve of models using different features"
+    )
     fig.show()
 
     # is_continuous = [True, True, True]
