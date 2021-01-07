@@ -66,6 +66,8 @@ $P \left( c\right)= \frac{ \left| D_c \right| + 1}{\left|D\right| + N}$ ，$P\le
 
 若$l\left( \boldsymbol x \right) < \frac {\left( \lambda_{12} -\lambda_{22} \right) P\left( c_2 \right)} {\left( \lambda_{21} -\lambda_{11} \right) P\left( c_1 \right)}$，则$\hat c = c_2$
 
+一般情况下，取$\lambda_{i,i}=0$
+
 
 
 ### ROC

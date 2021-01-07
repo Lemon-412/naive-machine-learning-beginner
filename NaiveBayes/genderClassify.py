@@ -105,7 +105,6 @@ def main():
             name=f"feature {i} (AUC={auc})",
             mode="lines",
         ))
-    fig.update_yaxes(scaleanchor="x", scaleratio=1)
     fig.update_xaxes(constrain='domain')
     fig.update_layout(
         xaxis_title="False Positive Rate",
