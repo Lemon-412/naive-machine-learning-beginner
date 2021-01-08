@@ -19,11 +19,15 @@ class Fisher:
             m[y] += x
         m[0] /= cnt[0]
         m[1] /= cnt[1]
+        # print(f"cnt:{cnt}")
         for x, y in zip(self.__training_x, self.__training_y):
             cur = np.array([x - m[y]])
             s += np.dot(cur.T, cur)
+        # print(s)
         self.__w = np.dot(np.linalg.inv(s), np.array([m[0] - m[1]]).T)
-        self.__w0 = -np.dot(np.dot(m[0] + m[1], np.linalg.inv(s)), np.array([m[0] - m[1]]).T) / 2 - np.log(cnt[1] / cnt[0])
+        # print(self.__w)
+        self.__w0 = -np.dot(np.dot(m[0] + m[1], np.linalg.inv(s)), np.array([m[0] - m[1]]).T) / 2 - np.log(cnt[1] / cnt[0]) / (cnt[0] + cnt[1] - 2)
+        # print(self.__w0)
 
     def inference(self, inference_x):
         inference_y = np.dot(self.__w.T, np.array([inference_x]).T) + self.__w0

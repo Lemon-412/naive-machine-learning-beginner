@@ -30,7 +30,7 @@ def inference(self, inference_x):
 
 def main():
     raw_data = pd.read_csv("student_data.csv")
-    x = np.array(raw_data.iloc[:, 3:])
+    x = np.array(raw_data.iloc[:, 1:3])
     y = np.array(np.array(raw_data).T[0].T, dtype=int)
     # print(f"x: {x}")
     # print(f"y: {y}")
@@ -43,9 +43,9 @@ def main():
     print(f"accuracy: {acc * 100}%")
 
     input("==============================================")
-    train_x = np.array(raw_data.iloc[:25, 3:])
+    train_x = np.array(raw_data.iloc[:25, 1:])
     train_y = np.array(np.array(raw_data.iloc[:25, :]).T[0].T, dtype=int)
-    inference_x = np.array(raw_data.iloc[20:, 3:])
+    inference_x = np.array(raw_data.iloc[25:, 1:])
     inference_y = np.array(np.array(raw_data.iloc[25:, :]).T[0].T, dtype=int)
     fisher = Fisher(train_x, train_y)
     fisher.inference = MethodType(inference, fisher)
