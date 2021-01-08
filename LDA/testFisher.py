@@ -7,8 +7,8 @@ from types import MethodType
 
 def cross_validation(x, y):
     """
-    使用交叉验证法对模型进行评估
-    :return: 模型交叉验证下的正确率
+    使用留一法验证法对模型进行评估
+    :return: 模型留一法下的正确率
     """
     cnt = 0
     for i in range(len(x)):
@@ -28,27 +28,12 @@ def inference(self, inference_x):
     return np.dot(self._Fisher__w.T, np.array([inference_x]).T)
 
 
-def main():
-    raw_data = pd.read_csv("student_data.csv")
-    x = np.array(raw_data.iloc[:, 1:3])
-    y = np.array(np.array(raw_data).T[0].T, dtype=int)
-    # print(f"x: {x}")
-    # print(f"y: {y}")
-    fisher = Fisher(x, y)
-    fisher.train()
-    # return
-
-    input("==============================================")
-    acc = cross_validation(x, y)
-    print(f"accuracy: {acc * 100}%")
-
-    input("==============================================")
-    train_x = np.array(raw_data.iloc[:25, 1:])
-    train_y = np.array(np.array(raw_data.iloc[:25, :]).T[0].T, dtype=int)
-    inference_x = np.array(raw_data.iloc[25:, 1:])
-    inference_y = np.array(np.array(raw_data.iloc[25:, :]).T[0].T, dtype=int)
+def calculate_roc(train_x, train_y, inference_x, inference_y):
+    """
+    计算给定数据集，绘制ROC曲线并计算AUC
+    """
     fisher = Fisher(train_x, train_y)
-    fisher.inference = MethodType(inference, fisher)
+    fisher.inference = MethodType(inference, fisher)  # 重写inference函数用于计算ROC
     fisher.train()
     ans = []
     tot, cnt = [0, 0], [0, 0]
@@ -69,10 +54,7 @@ def main():
         type="line", line=dict(dash="dash"),
         x0=0, x1=1, y0=0, y1=1,
     )
-    fig.add_trace(go.Scatter(
-        x=plot_x, y=plot_y,
-        mode="lines",
-    ))
+    fig.add_trace(go.Scatter(x=plot_x, y=plot_y,mode="lines",))
     fig.update_xaxes(constrain='domain')
     fig.update_layout(
         xaxis_title="False Positive Rate",
@@ -80,6 +62,23 @@ def main():
         title=f"ROC curve of Fisher classifier (AUC={auc})"
     )
     fig.show()
+
+
+def main():
+    raw_data = pd.read_csv("student_data.csv")
+
+    print("==============================================")
+    x = np.array(raw_data.iloc[:, 1:3])
+    y = np.array(np.array(raw_data).T[0].T, dtype=int)
+    acc = cross_validation(x, y)
+    print(f"accuracy: {acc * 100}%")
+
+    print("==============================================")
+    train_x = np.array(raw_data.iloc[:10, 1:])
+    train_y = np.array(np.array(raw_data.iloc[:10, :]).T[0].T, dtype=int)
+    inference_x = np.array(raw_data.iloc[10:, 1:])
+    inference_y = np.array(np.array(raw_data.iloc[10:, :]).T[0].T, dtype=int)
+    calculate_roc(train_x, train_y, inference_x, inference_y)
 
 
 if __name__ == '__main__':

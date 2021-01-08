@@ -8,8 +8,8 @@ from types import MethodType
 
 def cross_validation(x, y, is_continuous):
     """
-    使用交叉验证法对模型进行评估
-    :return: 模型交叉验证下的正确率
+    使用留一法验证法对模型进行评估
+    :return: 模型留一法验证下的正确率
     """
     cnt = 0
     for i in range(len(x)):
