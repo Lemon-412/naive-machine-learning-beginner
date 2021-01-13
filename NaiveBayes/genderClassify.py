@@ -6,7 +6,7 @@ import pandas as pd
 from types import MethodType
 
 
-def cross_validation(x, y, is_continuous):
+def leave_one_out(x, y, is_continuous):
     """
     使用留一法验证法对模型进行评估
     :return: 模型留一法验证下的正确率
@@ -56,19 +56,19 @@ def main():
     x = np.array(raw_data.iloc[:, 3:4])
     y = np.array(np.array(raw_data).T[0].T, dtype=int)
     is_continuous = [True]
-    acc = cross_validation(x, y, is_continuous)
+    acc = leave_one_out(x, y, is_continuous)
     print(f"accuracy using 1 feature: {acc * 100}%")
 
     x = np.array(raw_data.iloc[:, 1:3])
     y = np.array(np.array(raw_data).T[0].T, dtype=int)
     is_continuous = [True, True]
-    acc = cross_validation(x, y, is_continuous)
+    acc = leave_one_out(x, y, is_continuous)
     print(f"accuracy using 2 features: {acc * 100}%")
 
     x = np.array(raw_data.iloc[:, 1:])
     y = np.array(np.array(raw_data).T[0].T, dtype=int)
     is_continuous = [True, True, True]
-    acc = cross_validation(x, y, is_continuous)
+    acc = leave_one_out(x, y, is_continuous)
     print(f"accuracy using 3 features: {acc * 100}%")
 
     print("=================================================")

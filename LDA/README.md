@@ -2,7 +2,13 @@
 
 **Fisher线性分类器(LDA)的判别思想**：
 
-在超平面上选择一个投影向量 $\boldsymbol{w^*}$ ，在各类别投影后各类相隔尽可能远，而类内相隔尽可能近。
+在超空间中选择一个投影向量 $\boldsymbol{w^*}$ ，在各类别投影后各类相隔尽可能远，而类内相隔尽可能近。
+
+设定阈值 $w_0$ ，则以 $\boldsymbol{w}^*$ 为法向量， $w_0$ 为截距的超平面即决策面。
+
+定义准则函数 $J_F(w) = \frac{S_b}{S_w} = \frac{\left( m_1-m_2 \right)^2}{S_1^2+S_2^2}$
+
+则 $\boldsymbol{w}^* = \arg\max_{\boldsymbol{w}}J_F(\boldsymbol{w})$
 
 
 
@@ -27,6 +33,8 @@
 
 
 **预测**：
+
+决策面即 $\boldsymbol{w}^\top \boldsymbol{x} + w_0 = 0 $
 
 代入计算 $\hat y = \boldsymbol{w}^\top \boldsymbol{x} + w_0$ 若 $\hat y > 0$ 则分为正类，否则分为反类。
 

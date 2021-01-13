@@ -14,6 +14,14 @@ class Fisher:
         self.__w = None
         self.__w0 = None
 
+    @property
+    def w(self):
+        return self.__w
+
+    @property
+    def w0(self):
+        return self.__w0
+
     def train(self):
         m = np.zeros((2, self.__n))
         s = np.zeros((self.__n, self.__n))
