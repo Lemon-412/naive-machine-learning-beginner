@@ -19,8 +19,13 @@ class PCA(object):
         """
         self.data = data
         datamat = np.mat(data)
-        meanVals = np.mean(datamat, axis = 0)
-        data = datamat - meanVals
+        # meanVals = np.mean(datamat, axis = 0)
+        for i in range(3):
+            x1 = datamat[:,i].min()
+            x2 = datamat[:,i].max()
+            for j in range(len(data)):
+                datamat[j, i] = (datamat[j, i]-x1)/(x2-x1)
+        # print(datamat)
         Scov = np.zeros((3, 3))
         N = len(datamat)
         for i in range(N):
@@ -28,12 +33,15 @@ class PCA(object):
             Scov += cur/N
         # print(Scov)
         eigvals, eigvecs = np.linalg.eig(Scov)
+        print(eigvecs)
+        print(eigvals)
         eigind = np.argsort(-eigvals)
         mainind = eigind[:num]
         maineigvals = eigvals[mainind]
         maineigvecs = eigvecs[:, mainind]
-        lowDataMat = np.dot(data, maineigvecs)
-        reconMat = np.dot(lowDataMat, maineigvecs.T) + meanVals
+        lowDataMat = np.dot(datamat, maineigvecs)
+        reconMat = np.dot(lowDataMat, maineigvecs.T) 
+        # print(eigvecs)
         return lowDataMat, reconMat
 
 def loadDataSet(fileName, delim = ','):
