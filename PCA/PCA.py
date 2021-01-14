@@ -15,6 +15,7 @@ class PCA(object):
         self.__pca_data_mat = None
         self.__m, self.__n = self.__data.shape
 
+
     @property
     def restored_data(self):
         return self.__pca_restored_data
