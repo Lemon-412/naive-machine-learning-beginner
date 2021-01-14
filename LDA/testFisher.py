@@ -105,8 +105,11 @@ def main():
     auc = calculate_roc(train_x, train_y, inference_x, inference_y)
     print(f"auc: {auc}")
 
+    print("===========================================")
     fisher = Fisher(x, y)
     fisher.train()
+    print(f"w={fisher.w.T}")
+    print(f"w*={fisher.w0}")
 
     dense = 200
     x_space = np.linspace(np.array(raw_data).T[1].T.min(), np.array(raw_data).T[1].T.max(), dense)
