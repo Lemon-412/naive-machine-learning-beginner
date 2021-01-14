@@ -19,11 +19,7 @@ def loadDataSet(file_name, delimiter=','):
 def main():
     data, label = loadDataSet("data.csv")
     pca = PCA(data)
-    lowDataMat, reconMat = pca.kl(2)
-    print(len(data))
-    print(len(reconMat))
-    for x, y in zip(data, reconMat):
-        print(f"{x} -> {y}")
+    x = pca.pca(features=2)
 
 
 if __name__ == '__main__':
