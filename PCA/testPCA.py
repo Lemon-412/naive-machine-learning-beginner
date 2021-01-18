@@ -1,25 +1,18 @@
 from PCA import PCA
 import numpy as np
-
-
-def loadDataSet(file_name, delimiter=','):
-    """
-    加载数据集
-    :param file_name: 数据集名称
-    :param delimiter: 分隔符
-    :return: 数据矩阵
-    """
-    with open(file_name, 'r', encoding='utf-8') as fr:
-        string_arr = [line.strip().split(delimiter) for line in fr.readlines()]
-        dat_arr = [list(map(float, line[1:])) for line in string_arr]
-        label = [0 if line[0] == '男' else 1 for line in string_arr]
-    return np.mat(dat_arr), label
+import pandas as pd
+import plotly.graph_objects as go
+import plotly.express as px
+import plotly.express.colors as pc
 
 
 def main():
-    data, label = loadDataSet("data.csv")
-    pca = PCA(data)
-    x = pca.pca(features=2)
+    raw_data = pd.read_csv("student_data.csv")
+    x = np.array(raw_data.iloc[:, 1:])
+    y = np.array(np.array(raw_data).T[0].T, dtype=int)
+    pca = PCA(x)
+    pca_x = pca.pca(features=1)
+    err = pca.restored_data - x
 
 
 if __name__ == '__main__':

@@ -91,13 +91,14 @@ def calculate_roc(train_x, train_y, inference_x, inference_y):
 def main():
     raw_data = pd.read_csv("student_data.csv")
 
-    x = np.array(raw_data.iloc[:, 1:])
-    y = np.array(np.array(raw_data).T[0].T, dtype=int)
-    acc = leave_one_out(x, y)
-    print(f"accuracy using leave_one_out: {acc * 100}%")
-    acc = hold_out(x, y, scale=0.7)
-    print(f"accuracy using hold_out: {acc * 100}%")
+    for feature in range(1, 4, 1):
+        print(f"================== {feature} feature ==================")
+        x = np.array(raw_data.iloc[:, 4 - feature:])
+        y = np.array(np.array(raw_data).T[0].T, dtype=int)
+        print(f"accuracy using leave_one_out: {leave_one_out(x, y) * 100}%")
+        print(f"accuracy using hold_out: {hold_out(x, y, scale=0.7) * 100}%")
 
+    print("===========================================")
     train_x = np.array(raw_data.iloc[:10, 1:])
     train_y = np.array(np.array(raw_data.iloc[:10, :]).T[0].T, dtype=int)
     inference_x = np.array(raw_data.iloc[10:, 1:])
@@ -105,7 +106,8 @@ def main():
     auc = calculate_roc(train_x, train_y, inference_x, inference_y)
     print(f"auc: {auc}")
 
-    print("===========================================")
+    x = np.array(raw_data.iloc[:, 1:])
+    y = np.array(np.array(raw_data).T[0].T, dtype=int)
     fisher = Fisher(x, y)
     fisher.train()
     print(f"w={fisher.w.T}")
