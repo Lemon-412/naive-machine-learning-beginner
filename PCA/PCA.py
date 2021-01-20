@@ -14,11 +14,15 @@ class PCA(object):
         self.__pca_normalized_data = None
         self.__pca_data_mat = None
         self.__m, self.__n = self.__data.shape
-
+        self.__energy = None
 
     @property
     def restored_data(self):
         return self.__pca_restored_data
+
+    @property
+    def energy(self):
+        return self.__energy
 
     def pca(self, features):
         """
@@ -41,6 +45,7 @@ class PCA(object):
         eig_ind = np.argsort(-eig_val)
         main_ind = eig_ind[: features]
         main_eig_vec = eig_vec[:, main_ind]
+        self.__energy = sum(eig_val[main_ind]) / sum(eig_val)
         self.__pca_data_mat = np.dot(self.__normalized_data, main_eig_vec)
         self.__pca_normalized_data = np.dot(self.__pca_data_mat, main_eig_vec.T)
         self.__pca_restored_data = np.zeros((self.__m, self.__n))
