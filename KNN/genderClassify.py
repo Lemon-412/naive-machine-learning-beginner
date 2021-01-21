@@ -139,25 +139,28 @@ def main():
     )
     knn = KNN(pca_x, y, 15)
     knn.inference = MethodType(inference, knn)  # 重写inference函数
-    xrange = np.arange(pca_x[:, 0].min() - 0.1, pca_x[:, 0].max() + 0.1, 0.01)
-    yrange = np.arange(pca_x[:, 1].min() - 0.1, pca_x[:, 1].max() + 0.1, 0.01)
-    print(f"xrange: {len(xrange)}, yrange: {len(yrange)}")
+    x_range = np.arange(pca_x[:, 0].min() - 0.1, pca_x[:, 0].max() + 0.1, 0.01)
+    y_range = np.arange(pca_x[:, 1].min() - 0.1, pca_x[:, 1].max() + 0.1, 0.01)
+    print(f"x_range: {len(x_range)}, y_range: {len(y_range)}")
     zz = []
-    for _x in xrange:
+    for _x in x_range:
         zz.append([])
-        for _y in yrange:
+        for _y in y_range:
             ret = knn.inference(np.array([_x, _y]))
             zz[-1].append(ret)
     zz = np.array(zz).T
     fig.add_trace(
         go.Contour(
-            x=xrange, y=yrange, z=zz,
+            x=x_range, y=y_range, z=zz,
             showscale=False, colorscale='RdBu',
             opacity=0.4, name='Score',
         ),
         row=1, col=2,
     )
     fig.show()
+    knn = CondenseKNN(x, y, 5)
+    knn.train()
+    print(f"condense: {len(x)} -> {len(knn.condense_set[0])}")
 
 
 if __name__ == '__main__':

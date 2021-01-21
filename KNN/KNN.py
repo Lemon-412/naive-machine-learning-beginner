@@ -53,6 +53,10 @@ class CondenseKNN:
         self.__grab_bag_x = None
         self.__grab_bag_y = None
 
+    @property
+    def condense_set(self):
+        return self.__store_x, self.__store_y
+
     def train(self):
         self.__store_x = []
         self.__store_y = []
