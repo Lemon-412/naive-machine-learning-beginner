@@ -48,7 +48,7 @@ def normalize(data):
 
 def inference(self, inference_x):
     """
-    对二分类问题重写KNN预测函数，得到可能性
+    对二分类问题重写KNN预测函数，得到决策可信度
     """
     tmp = []
     for i in range(self._KNN__n):  # 对每一个train计算曼哈顿距离
@@ -62,81 +62,41 @@ def main():
     raw_data = pd.read_csv("student_data.csv")
     x = np.array(raw_data.iloc[:, 1:])
     y = np.array(np.array(raw_data).T[0].T, dtype=int)
+    normalized_x = normalize(x)
+    pca = PCA(x)
+    pca_x = np.array(pca.pca(features=2))
+
     fig = make_subplots(
         rows=1, cols=2,
         column_width=[0.5, 0.5],
         specs=[
             [{"type": "scatter"}, {"type": "scatter"}],
-        ]
-    )
-    accuracy = []
-    for k in range(1, 50, 2):
-        accuracy.append(leave_one_out(x, y, k))
-    fig.add_trace(
-        go.Scatter(
-            x=list(range(1, 50, 2)), y=accuracy,
-            name=f"raw data", mode="lines",
-        ),
-        row=1, col=1,
-    )
-    normalized_x = normalize(x)
-    accuracy = []
-    for k in range(1, 50, 2):
-        accuracy.append(leave_one_out(normalized_x, y, k))
-    fig.add_trace(
-        go.Scatter(
-            x=list(range(1, 50, 2)), y=accuracy,
-            name=f"normalized", mode="lines",
-        ),
-        row=1, col=1,
-    )
-    pca = PCA(x)
-    pca_x = np.array(pca.pca(features=2))
-    accuracy = []
-    for k in range(1, 50, 2):
-        accuracy.append(leave_one_out(pca_x, y, k))
-    fig.add_trace(
-        go.Scatter(
-            x=list(range(1, 50, 2)), y=accuracy,
-            name=f"pca", mode="lines",
-        ),
-        row=1, col=1,
-    )
-    accuracy = []
-    for k in range(1, 50, 2):
-        accuracy.append(leave_one_out(normalized_x, y, k, condense=True))
-    fig.add_trace(
-        go.Scatter(
-            x=list(range(1, 50, 2)), y=accuracy,
-            name=f"normalized + condense", mode="lines",
-        ),
-        row=1, col=1,
-    )
-    accuracy = []
-    for k in range(1, 50, 2):
-        accuracy.append(leave_one_out(pca_x, y, k, condense=True))
-    fig.add_trace(
-        go.Scatter(
-            x=list(range(1, 50, 2)), y=accuracy,
-            name=f"pca + condense", mode="lines",
-        ),
-        row=1, col=1,
+        ],
+        subplot_titles=(
+            "kNN/condense kNN performance of different training sets",
+            "decision boundary of kNN using PCA data (2 dimensions)",
+        )
     )
 
-    fig.add_trace(
-        go.Scatter(
-            x=pca_x[y == 0, 0], y=pca_x[y == 0, 1],
-            name=f"male", mode="markers", marker_symbol="square",
-        ),
-        row=1, col=2,
-    )
-    fig.add_trace(
-        go.Scatter(
-            x=pca_x[y == 1, 0], y=pca_x[y == 1, 1],
-            name=f"female", mode="markers", marker_symbol="circle",
-        ),
-        row=1, col=2,
-    )
+    details = [
+        (x, False, "kNN + raw data"),
+        (normalized_x, False, "kNN + normalized data"),
+        (pca_x, False, "kNN + PCA (2 dimensions)"),
+        (normalized_x, True, "condense kNN + normalized data"),
+        (pca_x, True, "condense kNN + PCA (2 dimensions)"),
+    ]
+    for x_data, is_condense, name in details:
+        accuracy = []
+        for k in range(1, 50, 2):
+            accuracy.append(leave_one_out(x_data, y, k, condense=is_condense))
+        fig.add_trace(
+            go.Scatter(
+                x=list(range(1, 50, 2)), y=accuracy,
+                name=name, mode="lines",
+            ),
+            row=1, col=1,
+        )
+
     knn = KNN(pca_x, y, 15)
     knn.inference = MethodType(inference, knn)  # 重写inference函数
     x_range = np.arange(pca_x[:, 0].min() - 0.1, pca_x[:, 0].max() + 0.1, 0.01)
@@ -149,18 +109,38 @@ def main():
             ret = knn.inference(np.array([_x, _y]))
             zz[-1].append(ret)
     zz = np.array(zz).T
+
     fig.add_trace(
-        go.Contour(
-            x=x_range, y=y_range, z=zz,
-            showscale=False, colorscale='RdBu',
-            opacity=0.4, name='Score',
+        go.Scatter(
+            x=pca_x[y == 0, 0], y=pca_x[y == 0, 1],
+            name="male data", mode="markers", marker_symbol="square",
         ),
         row=1, col=2,
     )
+    fig.add_trace(
+        go.Scatter(
+            x=pca_x[y == 1, 0], y=pca_x[y == 1, 1],
+            name="female data", mode="markers", marker_symbol="circle",
+        ),
+        row=1, col=2,
+    )
+    fig.add_trace(
+        go.Contour(
+            x=x_range, y=y_range, z=zz,
+            showscale=False, colorscale='RdBu', opacity=0.4,
+        ),
+        row=1, col=2,
+    )
+    fig.update_xaxes(title_text="k", row=1, col=1)
+    fig.update_yaxes(title_text="accuracy using leave one out", range=[0.0, 1.0], row=1, col=1)
+    fig.update_xaxes(title_text="PCA training set dimension 1", row=1, col=2)
+    fig.update_yaxes(title_text="PCA training set dimension 2", row=1, col=2)
+    fig.update_layout(title="Performance of kNN and Visualization of kNN Decision Boundary")
     fig.show()
+
     knn = CondenseKNN(x, y, 5)
     knn.train()
-    print(f"condense: {len(x)} -> {len(knn.condense_set[0])}")
+    print(f"condensed kNN data set size: {len(x)} -> {len(knn.condense_set[0])}")
 
 
 if __name__ == '__main__':

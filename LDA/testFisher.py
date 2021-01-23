@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from Fisher import Fisher
+from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import plotly.express as px
 from types import MethodType
@@ -72,20 +73,7 @@ def calculate_roc(train_x, train_y, inference_x, inference_y):
         plot_y.append(cnt[1] / tot[1])
         if plot_x[-1] != plot_x[-2]:
             auc += (plot_x[-1] - plot_x[-2]) * plot_y[-1]
-    fig = go.Figure()
-    fig.add_shape(
-        type="line", line=dict(dash="dash"),
-        x0=0, x1=1, y0=0, y1=1,
-    )
-    fig.add_trace(go.Scatter(x=plot_x, y=plot_y, mode="lines"))
-    fig.update_xaxes(constrain='domain')
-    fig.update_layout(
-        xaxis_title="False Positive Rate",
-        yaxis_title="True Positive Rate",
-        title=f"ROC curve of Fisher classifier (AUC={auc})"
-    )
-    fig.show()
-    return auc
+    return plot_x, plot_y, auc
 
 
 def main():
@@ -103,8 +91,29 @@ def main():
     train_y = np.array(np.array(raw_data.iloc[:10, :]).T[0].T, dtype=int)
     inference_x = np.array(raw_data.iloc[10:, 1:])
     inference_y = np.array(np.array(raw_data.iloc[10:, :]).T[0].T, dtype=int)
-    auc = calculate_roc(train_x, train_y, inference_x, inference_y)
+    plot_x, plot_y, auc = calculate_roc(train_x, train_y, inference_x, inference_y)
     print(f"auc: {auc}")
+
+    fig = make_subplots(
+        rows=1, cols=2,
+        column_width=[0.4, 0.6],
+        specs=[
+            [{"type": "scatter"}, {"type": "scatter3d"}],
+        ],
+        subplot_titles=(
+            f"ROC curve of Fisher classifier (AUC={round(auc, 4)})",
+            "decision surface of NaiveBayes and Fisher",
+        ),
+    )
+    fig.add_shape(
+        type="line", line=dict(dash="dash"),
+        x0=0, x1=1, y0=0, y1=1,
+        row=1, col=1,
+    )
+    fig.add_trace(
+        go.Scatter(x=plot_x, y=plot_y, mode="lines", showlegend=False),
+        row=1, col=1,
+    )
 
     x = np.array(raw_data.iloc[:, 1:])
     y = np.array(np.array(raw_data).T[0].T, dtype=int)
@@ -128,9 +137,29 @@ def main():
                 + 0.003505508996134 * y_space[j] - 1
             )
             fisher_space[i][j] = -1 / fisher.w[2] * (fisher.w0 + fisher.w[0] * x_space[i] + fisher.w[1] * y_space[j])
-    fig = px.scatter_3d(raw_data, x="height", y="weight", z="shoe_size", color="gender")
-    fig.add_trace(go.Surface(x=x_space, y=y_space, z=bayes_space, opacity=0.50, showscale=False))
-    fig.add_trace(go.Surface(x=x_space, y=y_space, z=fisher_space, opacity=0.50, showscale=False))
+    fig.add_trace(
+        go.Scatter3d(
+            x=np.array(raw_data).T[1],
+            y=np.array(raw_data).T[2],
+            z=np.array(raw_data).T[3],
+            marker=dict(color=y), mode="markers",
+            showlegend=False,
+        ),
+        row=1, col=2,
+    )
+    fig.add_trace(
+        go.Surface(x=x_space, y=y_space, z=bayes_space, opacity=0.50, showscale=False),
+        row=1, col=2,
+    )
+    fig.add_trace(
+        go.Surface(x=x_space, y=y_space, z=fisher_space, opacity=0.50, showscale=False),
+        row=1, col=2,
+    )
+    fig.update_xaxes(title_text="False Positive Rate", range=[-0.01, 1.01], row=1, col=1)
+    fig.update_yaxes(title_text="True Positive Rate", range=[-0.01, 1.01], row=1, col=1)
+    fig["layout"]["scene"]["xaxis"] = {"title": {"text": "height"}}
+    fig["layout"]["scene"]["yaxis"] = {"title": {"text": "weight"}}
+    fig["layout"]["scene"]["zaxis"] = {"title": {"text": "shoe size"}}
     fig.show()
 
 

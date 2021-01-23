@@ -1,5 +1,5 @@
 from NaiveBayes import NaiveBayes
-import plotly.express as px
+from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import numpy as np
 import pandas as pd
@@ -49,38 +49,48 @@ def inference(self, inference_x):
 
 def main():
     raw_data = pd.read_csv("student_data.csv")
-    fig = px.scatter_3d(raw_data, x="height", y="weight", z="shoe_size", color="gender")
-    fig.show()
-
-    print("=================================================")
-    x = np.array(raw_data.iloc[:, 3:4])
     y = np.array(np.array(raw_data).T[0].T, dtype=int)
-    is_continuous = [True]
-    acc = leave_one_out(x, y, is_continuous)
-    print(f"accuracy using 1 feature: {acc * 100}%")
+    details = [
+        (1, 3, 4),
+        (2, 1, 3),
+        (3, 1, 4),
+    ]
+    for feat, st, ed in details:
+        x = np.array(raw_data.iloc[:, st: ed])
+        is_continuous = [True] * feat
+        acc = leave_one_out(x, y, is_continuous)
+        print(f"accuracy using {feat} feature: {acc * 100}%")
 
-    x = np.array(raw_data.iloc[:, 1:3])
-    y = np.array(np.array(raw_data).T[0].T, dtype=int)
-    is_continuous = [True, True]
-    acc = leave_one_out(x, y, is_continuous)
-    print(f"accuracy using 2 features: {acc * 100}%")
-
-    x = np.array(raw_data.iloc[:, 1:])
-    y = np.array(np.array(raw_data).T[0].T, dtype=int)
-    is_continuous = [True, True, True]
-    acc = leave_one_out(x, y, is_continuous)
-    print(f"accuracy using 3 features: {acc * 100}%")
-
-    print("=================================================")
-    fig = go.Figure()
+    fig = make_subplots(
+        rows=1, cols=2,
+        column_width=[0.6, 0.4],
+        specs=[
+            [{"type": "scatter3d"}, {"type": "scatter"}],
+        ],
+        subplot_titles=(
+            "visualization of training data",
+            "ROC curve of models using different features",
+        )
+    )
+    fig.add_trace(
+        go.Scatter3d(
+            x=np.array(raw_data).T[1],
+            y=np.array(raw_data).T[2],
+            z=np.array(raw_data).T[3],
+            marker=dict(color=y), mode="markers",
+            showlegend=False,
+        ),
+        row=1, col=1
+    )
     fig.add_shape(
         type="line", line=dict(dash="dash"),
         x0=0, x1=1, y0=0, y1=1,
+        row=1, col=2,
     )
     for i in range(1, 4):
-        train_x = np.array(raw_data.iloc[:20, i:i + 1])
+        train_x = np.array(raw_data.iloc[:20, i: i + 1])
         train_y = np.array(np.array(raw_data.iloc[:20, :]).T[0].T, dtype=int)
-        inference_x = np.array(raw_data.iloc[20:, i:i + 1])
+        inference_x = np.array(raw_data.iloc[20:, i: i + 1])
         inference_y = np.array(np.array(raw_data.iloc[20:, :]).T[0].T, dtype=int)
         is_continuous = [True]
         naive_bayes = NaiveBayes(train_x, train_y, is_continuous)
@@ -100,17 +110,19 @@ def main():
             plot_y.append(cnt[1] / tot[1])
             if plot_x[-1] != plot_x[-2]:
                 auc += (plot_x[-1] - plot_x[-2]) * plot_y[-1]
-        fig.add_trace(go.Scatter(
-            x=plot_x, y=plot_y,
-            name=f"feature {i} (AUC={auc})",
-            mode="lines",
-        ))
-    fig.update_xaxes(constrain='domain')
-    fig.update_layout(
-        xaxis_title="False Positive Rate",
-        yaxis_title="True Positive Rate",
-        title="ROC curve of models using different features"
-    )
+        fig.add_trace(
+            go.Scatter(
+                x=plot_x, y=plot_y,
+                name=f"feature {i} (AUC={round(auc, 4)})",
+                mode="lines",
+            ),
+            row=1, col=2,
+        )
+    fig.update_xaxes(title_text="False Positive Rate", range=[-0.01, 1.01], row=1, col=2)
+    fig.update_yaxes(title_text="True Positive Rate", range=[-0.01, 1.01], row=1, col=2)
+    fig["layout"]["scene"]["xaxis"] = {"title": {"text": "height"}}
+    fig["layout"]["scene"]["yaxis"] = {"title": {"text": "weight"}}
+    fig["layout"]["scene"]["zaxis"] = {"title": {"text": "shoe size"}}
     fig.show()
 
     # is_continuous = [True, True, True]
