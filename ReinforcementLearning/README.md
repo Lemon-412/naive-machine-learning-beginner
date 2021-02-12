@@ -6,7 +6,7 @@
 >
 > https://www.bilibili.com/video/BV1UE411G78S?p=4
 >
-> 已完成：p1, p2, p3, p4
+> 已完成：p1, p2, p3, p4, p5
 
 
 
@@ -76,7 +76,7 @@ RL从环境学习的过程中产生一系列的Action，但直到到达终态（
 
 最优的参数即使得游戏期望累计收益最大的参数。
 
-$\theta ^* = \arg\max \bar{R}_\theta$：可以使用梯度上升 gradient ascent。
+$\theta ^* = \arg\max \bar{R}_\theta$：可以使用梯度上升 **Gradient Ascent**。
 
 $\theta^{new} = \theta^{old} + \eta \nabla \bar{R}_{\theta^{old}}$ ，其中 $\eta$ 为学习率 learning rate。
 
@@ -154,9 +154,9 @@ $\displaystyle \nabla\bar{R}_\theta \approx \frac{1}{N} \sum_{n=1}^{N} \sum_{t=1
 
 先不考虑优化，我们有 $ \nabla \bar{R}_\theta = \mathbb{E}_{\tau \sim p_\theta(\tau)}[R(\tau) \nabla\log p_\theta(\tau)]$
 
-值得注意的是，游戏 $\tau$ 发生的概率分布与参数 $\theta$ 是有关的。即我们是用过 $\pi_\theta$ 去不断采样 $\tau$ 的。
+值得注意的是，游戏 $\tau$ 发生的概率分布与参数 $\theta$ 是有关的。即我们是用策略 $\pi_\theta$ 去不断采样 $\tau$ 的。
 
-因此，在求梯度时，当参数 $\theta$ 更新后，我们不得不立即用新的 $\theta$ 重新从环境中进行采样 (on-policy)。
+因此，在求梯度时，当参数 $\theta$ 更新后，我们不得不立即用新的 $\theta$ 重新从环境中进行采样 (**on-policy**)。
 
 根据概率论，我们有：
 
@@ -180,14 +180,53 @@ $\displaystyle \nabla \bar{R}_\theta \approx \mathbb{E}_{(s_t,a_t) \sim \pi_{\th
 
 PPO/TRPO/PPO2
 
+PPO：Policy-Based
+
 
 
 ### Q-learning
 
-[WIP]
+**Critic**(Value-based)： $V^\pi(s)$ 表征 $\pi$ 策略下 $s$ 的期望reward，critic是与actor绑定的。
+
+State value function  $V^\pi(s)$：
+
+- Monte-Carlo (MC) based approach：更新 $V^\pi(s_t) = \sum_{i\geq t} r_i$ 。至少要等到游戏结束才能更新network，耗费时间长。
+- Temporal-difference (TD) approach：估算$V^\pi(s_{t+1})$，再更新 $V^\pi(s_t) = V^\pi(s_{t+1})+r_t$。拥有更小的variance，但 $V^\pi(s_{t+1})$ 不一定估的准。
+
+State-action value function  $Q^\pi(s, a)$：同样可以用TD或MC的方式。
+
+
+
+如果对于任意 $s$，定义 $\pi^\prime(s) = \arg\max_a Q^\pi(s,a)$，则有恒等式：
+
+$\displaystyle V^\pi(s_t) = Q^\pi(s_t,\pi(s_t)) \leq \max_a Q^\pi(s_t,a) = Q^\pi(s, \pi^\prime(s_t)) = r_t + V^\pi(s_{t+1}) \\                                        = r_t + Q^\pi(s_{t+1}, \pi(s_{t+1}))\leq r_t + \max_aQ^\pi(s_{t+1}, a) \cdots \leq V^{\pi^\prime}(s) $
+
+因此总可以通过 $Q^\pi$ 得到一个更好的策略 $ \pi^\prime $
+
+
+
+**Fixed network (target network)**：
+
+在训练中，我们认为 $r_t + Q^\pi(s_{t+1}, \pi(s_{t+1}))$ 是对 $Q^\pi(s_t, a_t)$ 的一个更精确的估计。我们将前者中的 $Q^\pi$ 固定进行多轮更新得到 $\hat{Q} $，在若干轮后再将 $\hat{Q}$ 替换 $Q$ 进行新一轮迭代。
+
+
+
+**Exploration**：
+
+如果每次决策都取 $a = \arg\max_aQ(s,a)$ ，非常不利于对环境的探索。
+
+- Epsilon Greedy：给定一个会随着训练递减的 $\varepsilon$ ，以 $\varepsilon$ 的概率进行随机决策
+- Boltzmann Exploration：根据 $Q$ 的概率分布normalize后进行决策 $P(a|s) = \frac{e^{Q(s,a)}}{\sum_a e^{(Q(s,a))}}$
+
+
+
+**Replay Buffer**：
+
+
 
 
 
 ### Actor Critic
 
 [WIP]
+
