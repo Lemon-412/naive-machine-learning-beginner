@@ -6,16 +6,16 @@
 >
 > https://www.bilibili.com/video/BV1UE411G78S?p=4
 >
-> 已完成：p1, p2, p3, p4, p5
+> 已完成：p1, p2, p3, p4, p5, p6, p7, p8
 
 
 
 ### Scenario of RL
 
-RL由**Agent**和**Environment**组成：
+RL由 **Agent** 和 **Environment** 组成：
 
-- **State**(Observation)：Agent 观测 Environment。DRL的强表达能力使得可以直接将Observation作为State，而不需要做额外的Summary。
-- **Action**： Agent 产生行为改变 Environment，Environment 给予 **reward**
+- **State**(Observation)：Agent 观测 Environment。DRL的强表达能力使得可以直接将 Observation 作为State，而不需要做额外的 Summary 。
+- **Action**：Agent 产生行为改变 Environment，Environment 给予 **reward**
 
 - Agent learns to take actions to maximize expected reward.
 
@@ -23,19 +23,19 @@ RL由**Agent**和**Environment**组成：
 
 ### Learning from experience
 
-RL从环境学习的过程中产生一系列的Action，但直到到达终态（完成一个**episode** $\tau$），大多数的reward可能都是0，缺少对每一个行为的好坏的评判。因此，相较于supervised learning，RL更需要从经验中进行学习（reward delay）。
+RL从环境学习的过程中产生一系列的 Action ，但直到到达终态（完成一个**episode** $\tau$），大多数的 reward 可能都是0，缺少对每一个行为的好坏的评判。因此，相较于 supervised learning ，RL更需要从经验中进行学习（reward delay）。
 
 
 
 > Inversed Reinforcement Learning (IRL)
 >
-> 通常RL是给定environment，通过黑盒的reward function去学一个 $\theta$ 
+> 通常RL是给定 environment ，通过黑盒的 reward function 去学一个 $\theta$ 
 >
-> IRL用于解决现实中reward function复杂甚至无法定义的情况，给定environment，并通过expert的知道去学习一个reward function。
+> IRL用于解决现实中 reward function 复杂甚至无法定义的情况，给定 environment ，并通过 expert 的知道去学习一个 reward function 。
 >
 > > 如何定义无人驾驶的reward function？撞了人扣一百分，那撞了狗呢？
 >
-> 具体实现方法类似GAN，Actor始终模仿expert的行为（最终成为generator），而Discriminator始终学着区分Actor和expert（最终成为reward function）
+> 具体实现方法类似 GAN ， Actor 始终模仿 expert 的行为（最终成为 generator ），而 Discriminator 始终学着区分 Actor 和 expert （最终成为 reward function ）
 
 
 
@@ -43,9 +43,9 @@ RL从环境学习的过程中产生一系列的Action，但直到到达终态（
 
 定义环境 $E=<X,A,P,R>$
 
-- 状态空间$X$：对Agent感知到的环境的描述。$\forall x \in X$唯一对应一个环境的状态（State）。
+- 状态空间$X$：对 Agent 感知到的环境的描述。$\forall x \in X$唯一对应一个环境的状态（State）。
 
-- 动作空间$A$：对Agent能采取的行为的约束。$\forall a \in A$唯一对应一个可采取的行为。在一些问题中，$a|x$。
+- 动作空间$A$：对 Agent 能采取的行为的约束。$\forall a \in A$唯一对应一个可采取的行为。在一些问题中，$a|x$。
 
 - 转移函数$P$：$X \times A \times X \rightarrow \mathbb{R}$，描述环境在某一状态某一动作下转移到另一状态的概率。黑盒。
 
@@ -60,7 +60,7 @@ RL从环境学习的过程中产生一系列的Action，但直到到达终态（
 **Actor**(policy)： $\pi _{\theta} \left( x,a \right)$:
 
 - input： State，一般用一个向量或矩阵表示
-- output： Action，采取每一个action对应的几率
+- output： Action，采取每一个 action 对应的几率
 
 
 
@@ -122,13 +122,11 @@ $\displaystyle \nabla\bar{R}_\theta \approx \frac{1}{N} \sum_{n=1}^{N} \sum_{t=1
 
 
 
-**添加Baseline** (trick)：
+**Add a Baseline**：
 
-由于actor对各个行为的概率会做归一化处理，即 $\sum_{a} \pi_\theta(a|s) = 1$ ，当 $R(\cdot)$恒为正或恒为负时，理论上不会影响学习。
+由于 actor 对各个行为的概率会做归一化处理，即 $\sum_{a} \pi_\theta(a|s) = 1$ ，当 $R(\cdot)$恒为正或恒为负时，理论上不会影响学习。然而，如果 $R(\cdot)$ 恒正，可能会陷入一些一开始没被 sample 到的 action ，在更新梯度后更不易被 sample 到的窘境。
 
-但，如果 $R(\cdot)$ 恒正，可能会陷入一些一开始没被sample到的action，在更新梯度后更不易被sample到的窘境。
-
-可以考虑添加baseline，设计超参 $b$ 并修正为上式为：
+可以考虑添加 baseline ，设计超参 $b$ 并修正为上式为：
 
 $\displaystyle \nabla\bar{R}_\theta \approx \frac{1}{N} \sum_{n=1}^{N} \sum_{t=1}^{T^n} \left(R(\tau^n) - b \right) \nabla \log(a_t^n|s_t^n, \theta)$
 
@@ -136,13 +134,13 @@ $\displaystyle \nabla\bar{R}_\theta \approx \frac{1}{N} \sum_{n=1}^{N} \sum_{t=1
 
 
 
-**更合理的评估reward** (trick)：
+**合理评估 reward**：
 
-对于某一episode $\tau $ 某一时刻 $t$ ，给予整个 $\tau$ 的reward可能是不公平的，因为 $s_t$ 下的任何决策的好坏似乎和 $t$ 时刻前已经积累的reward是无关的。修正上式（维护后缀和）为：
+对于某一episode $\tau $ 某一时刻 $t$ ，给予整个 $\tau$ 的 reward 可能是不公平的，因为 $s_t$ 下的任何决策的好坏似乎和 $t$ 时刻前已经积累的reward是无关的。修正上式（维护后缀和）为：
 
 $\displaystyle \nabla\bar{R}_\theta \approx \frac{1}{N} \sum_{n=1}^{N} \sum_{t=1}^{T^n} \left( \sum_{i=t}^{T} r_i^n - b \right) \nabla \log(a_t^n|s_t^n, \theta)$
 
-更进一步，可以考虑将较 $t$ 时刻过于遥远的reward打一个折扣，设计超参 $\gamma < 1$ ，修正上式为： 
+更进一步，可以考虑将较 $t$ 时刻过于遥远的 reward 打一个折扣，设计超参 $\gamma < 1$ ，修正上式为： 
 
 $\displaystyle \nabla\bar{R}_\theta \approx \frac{1}{N} \sum_{n=1}^{N} \sum_{t=1}^{T^n} A^\theta(s_t, a_t) \nabla \log(a_t^n|s_t^n, \theta)$
 
@@ -150,7 +148,7 @@ $\displaystyle \nabla\bar{R}_\theta \approx \frac{1}{N} \sum_{n=1}^{N} \sum_{t=1
 
 
 
-**Off-policy** (trick)：
+**Off-policy**：
 
 先不考虑优化，我们有 $ \nabla \bar{R}_\theta = \mathbb{E}_{\tau \sim p_\theta(\tau)}[R(\tau) \nabla\log p_\theta(\tau)]$
 
@@ -170,7 +168,7 @@ $\displaystyle \mathbb{E}_{x \sim p}[f(x)] = \int {f(x)p(x) } dx = \int f(x)\fra
 
  $\displaystyle \nabla \bar{R}_\theta = \mathbb{E}_{\tau \sim p_{\theta^\prime}} \left[ \frac{p_\theta(\tau)}{p_{\theta^\prime}(\tau)} R(\tau) \nabla \log p_\theta(\tau) \right]$
 
-同理，如果采用 $ A^\theta(s_t, a_t) $ 评估reward，则有：
+同理，如果采用 $ A^\theta(s_t, a_t) $ 评估 reward ，则有：
 
  $\displaystyle \nabla \bar{R}_\theta = \mathbb{E}_{(s_t,a_t) \sim \pi_\theta} \left[ A^\theta(s_t, a_t) \nabla \log(a_t^n|s_t^n, \theta) \right] \\             \displaystyle = \mathbb{E}_{(s_t,a_t) \sim \pi_{\theta^\prime}} \left[ \frac{p_\theta(s_t,a_t)}{p_{\theta^\prime}(s_t,a_t)} A^\theta(s_t, a_t) \nabla \log(a_t^n|s_t^n, \theta) \right] \\                                                                        \displaystyle = \mathbb{E}_{(s_t,a_t) \sim \pi_{\theta^\prime}} \left[ \frac{p_\theta(s_t|a_t)}{p_{\theta^\prime}(s_t|a_t)} \frac{p_\theta(s_t)}{p_{\theta^\prime(s_t)}} A^\theta(s_t, a_t) \nabla \log(a_t^n|s_t^n, \theta) \right]$
 
@@ -186,12 +184,12 @@ PPO：Policy-Based
 
 ### Q-learning
 
-**Critic**(Value-based)： $V^\pi(s)$ 表征 $\pi$ 策略下 $s$ 的期望reward，critic是与actor绑定的。
+**Critic**(Value-based)： $V^\pi(s)$ 表征 $\pi$ 策略下 $s$ 的期望 reward ， critic 是与 actor 绑定的。
 
 State value function  $V^\pi(s)$：
 
-- Monte-Carlo (MC) based approach：更新 $V^\pi(s_t) = \sum_{i\geq t} r_i$ 。至少要等到游戏结束才能更新network，耗费时间长。
-- Temporal-difference (TD) approach：估算$V^\pi(s_{t+1})$，再更新 $V^\pi(s_t) = V^\pi(s_{t+1})+r_t$。拥有更小的variance，但 $V^\pi(s_{t+1})$ 不一定估的准。
+- Monte-Carlo (MC) based approach：更新 $V^\pi(s_t) = \sum_{i\geq t} r_i$ 。至少要等到游戏结束才能更新 network ，耗费时间长。
+- Temporal-difference (TD) approach：预测 $V^\pi(s_{t+1})$，再更新 $V^\pi(s_t) \leftarrow V^\pi(s_{t+1})+r_t$。拥有更小的variance，但 $V^\pi(s_{t+1})$ 不一定估的准。
 
 State-action value function  $Q^\pi(s, a)$：同样可以用TD或MC的方式。
 
@@ -199,9 +197,9 @@ State-action value function  $Q^\pi(s, a)$：同样可以用TD或MC的方式。
 
 如果对于任意 $s$，定义 $\pi^\prime(s) = \arg\max_a Q^\pi(s,a)$，则有恒等式：
 
-$\displaystyle V^\pi(s_t) = Q^\pi(s_t,\pi(s_t)) \leq \max_a Q^\pi(s_t,a) = Q^\pi(s, \pi^\prime(s_t)) = r_t + V^\pi(s_{t+1}) \\                                        = r_t + Q^\pi(s_{t+1}, \pi(s_{t+1}))\leq r_t + \max_aQ^\pi(s_{t+1}, a) \cdots \leq V^{\pi^\prime}(s) $
+$\displaystyle V^\pi(s_t) = Q^\pi(s_t,\pi(s_t)) \leq \max_a Q^\pi(s_t,a) = Q^\pi(s, \pi^\prime(s_t)) = r_t + V^\pi(s_{t+1}) \\                                        = r_t + Q^\pi(s_{t+1}, \pi(s_{t+1}))\leq r_t + \max_aQ^\pi(s_{t+1}, a) = \cdots \leq V^{\pi^\prime}(s_t) $
 
-因此总可以通过 $Q^\pi$ 得到一个更好的策略 $ \pi^\prime $
+因此总可以通过 $Q^\pi$ 构造出一个更好的策略 $ \pi^\prime $
 
 
 
@@ -216,13 +214,113 @@ $\displaystyle V^\pi(s_t) = Q^\pi(s_t,\pi(s_t)) \leq \max_a Q^\pi(s_t,a) = Q^\pi
 如果每次决策都取 $a = \arg\max_aQ(s,a)$ ，非常不利于对环境的探索。
 
 - Epsilon Greedy：给定一个会随着训练递减的 $\varepsilon$ ，以 $\varepsilon$ 的概率进行随机决策
-- Boltzmann Exploration：根据 $Q$ 的概率分布normalize后进行决策 $P(a|s) = \frac{e^{Q(s,a)}}{\sum_a e^{(Q(s,a))}}$
+- Boltzmann Exploration：根据 $Q$ 的概率分布 normalize 后进行决策 $P(a|s) = \frac{e^{Q(s,a)}}{\sum_a e^{(Q(s,a))}}$
 
 
 
-**Replay Buffer**：
+**Replay Buffer** (Experience buffer)：
+
+将 Trajectory 拆分成 $<s_t, a_t, r_t, s_{t+1}>$ 的集合存放在 replay buffer 中（就像dataset一样）
+
+每次训练随机挑选一条记录。当buffer存满时，替换最久远的记录。
+
+replay buffer本质是 off-policy 的，但考虑到TD相比于MC对 Trajectory 不敏感，所以即使策略 $\pi$ 已经更新，也不影响 replay buffer 的直接使用
 
 
+
+**Typical Q-learning Algorithm**：
+
+- Initialize Q-function $Q$ , fixed Q-function $\hat{Q} \leftarrow Q$
+- In each episode
+  - for each time-step $t$ :
+    - Given state $s_t$ , taken action $a_t$ based on $Q$ (epsilon greedy)
+    - Obtain reward $r_t$ and the new state $s_{t+1}$
+    - Store  $<s_t, a_t, r_t, s_{t+1}>$ into replay buffer
+    - Sample $<s_i, a_i, r_i, s_{i+1}>$ randomly from the buffer
+    - let $y \leftarrow r_i + \max_a \hat{Q}(s_{i+1}, a)$
+    - Update the parameters of $Q$ to make $Q(s_i, a_i)$ close to $y$
+  - meanwhile, for each time-step $c$ :
+    - reset $\hat{Q} \leftarrow Q$
+
+
+
+**Double DQN**：
+
+在 DQN 中， $ Q(s_t, a_t) \leftarrow r_t + \max_a Q(s_{t+1}, a)$ 很容易导致 $Q(s,a)$ 整体被高估。因为只要 $Q(s_{t+1}, a)$ 中有一个被高估，就会导致 $Q(s_t,a_t)$ 被高估。
+
+DDQN 构建两个 Q-function ，一个负责决策最好的 $a$，一个给出 $<s,a>$ 的期望 reward ，降低高估的可能性。
+
+  $Q(s_t, a_t) \leftarrow r_t + Q^\prime(s_{t+1}, \arg\max_aQ(s_{t+1},a))$
+
+特别的，可以选择让 $Q^\prime = \hat{Q}$
+
+
+
+**Dueling DQN**：
+
+改变 DQN 的 network 结构，输入一个 state ，输出一个值 $V(s)$ 和一个向量 $A(s,a)$ 。
+
+有 $Q(s,a) = V(s) + A(s,a)$ 且 $\sum_a(A(s,a)) = 0$
+
+好处：对 state 的好坏进行评估，有机会在一次训练中更新多个 $Q$ 值，提升效率。
+
+
+
+**Prioritized Replay**：
+
+TD error 大的 Experience 有更大的可能被 sample 到。 
+
+update network 的方式应当随之改变。
+
+
+
+**Multi-step**：
+
+multi-step 是MC和TD的折衷方案。
+
+replay buffer 存放 $<s_t, r_t, r_{ty+1}, \cdots, r_{t+N}, s_{t+N}>$
+
+使用 $\sum_{t^\prime = t}^{t+N}r_{t^\prime}+\hat{Q}(s_{t+N+1},a_{t+N+1})$ 进行更新。
+
+
+
+**Noisy Net**：
+
+Epsilon Greedy 为了更好的探索环境，选择在 Action 上添加 noise 。
+
+noisy net 选择在 Q-function 上添加噪音（如高斯噪音）以达到探索的目的。
+
+$a = \arg\max_a \tilde{Q}$ ，其中 $\tilde{Q}$ 由 $Q$ 添加噪音得到。 $\tilde{Q}$ 生存周期可以是一个 trajectory。
+
+Noisy net 保证了在一个 episode 中，同一个 state 的 action 永远是一致的（state-dependent exploration）。
+
+
+
+**Distributional Q-function**：
+
+$Q(s, a)$ 的本质是在 $s$ 下采取 $a$ 的期望累积收益，本质应该是一个分布而不止包含均值。
+
+Distributional Q-function 的 network 在输入 $s$ 后，会输出对应的每一个 $a$ 的期望收益的概率分布。
+
+
+
+**Rainbow**：
+
+DQN + DDQN + Prioritized DDQN + Dueling DDQN + A3C(multi-step) +Distributional DQN + Noisy DQN
+
+凑齐彩虹，召唤神龙！
+
+
+
+**Continuous Actions**:
+
+如果 action 是连续的，就不能直接通过穷举找到 $\arg\max_a Q(s,a)$
+
+- 可以尝试将 action 随机采样代入。
+- 可以尝试使用梯度上升。
+- 可以尝试改变 network 结构。输入 $s$ 输出一个列向量 $\mu(s)$ 、一个矩阵  $\Sigma(s)$ 、一个值 $V(s)$，且满足 $Q(s,a) = -(a-\mu(s))^\top \Sigma(s)(a-\mu(s)) + V(s)$ 。由于 $(a-\mu(s))^\top \Sigma(s)(a-\mu(s))$ 恒正，所以有 $\mu(s) = \arg\max_aQ(s,a)$ 
+
+- 别用 critic 直接决策行为，再炼一个 actor。
 
 
 
