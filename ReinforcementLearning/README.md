@@ -4,7 +4,19 @@
 
 > 参考资料：李宏毅强化学习2020
 >
-> https://www.bilibili.com/video/BV1UE411G78S?p=4
+> https://www.bilibili.com/video/BV1UE411G78S
+>
+> 01.Deep RL
+> 02.Policy Gradient
+> 03.Learning to Interact with Envs
+> 04.PPO
+> 05.From on-policy to off-policy
+> 06.Q-Learning
+> 07.QL继续 DQN
+> 08.QL第3段：连续动作的QL
+> 09.Actor-Critic
+> 10.Sparse Reward
+> 11.Imitation Learning
 >
 > 已完成：p1, p2, p3, p4, p5, p6, p7, p8
 
@@ -43,7 +55,7 @@ RL从环境学习的过程中产生一系列的 Action ，但直到到达终态�
 
 定义环境 $E=<X,A,P,R>$
 
-- 状态空间$X$：对 Agent 感知到的环境的描述。$\forall x \in X$唯一对应一个环境的状态（State）。
+- 状态空间$X$：对 Agent 感知到的环境的描述。$\forall s \in X$唯一对应一个环境的状态（State）。
 
 - 动作空间$A$：对 Agent 能采取的行为的约束。$\forall a \in A$唯一对应一个可采取的行为。在一些问题中，$a|x$。
 
@@ -55,9 +67,9 @@ RL从环境学习的过程中产生一系列的 Action ，但直到到达终态�
 
 ### Policy Gradient
 
-定义策略 $\pi$ ：$X \times A \rightarrow \mathbb{R}$。即 $\pi\left( x,a \right)$ 表示状态 $x$ 下执行动作 $a$ 的概率。这是 Actor 的学习目标。
+定义策略 $\pi$ ：$X \times A \rightarrow \mathbb{R}$。即 $\pi\left( s, a \right)$ 表示状态 $s$ 下执行动作 $a$ 的概率。这是 Actor 的学习目标。
 
-**Actor**(policy)： $\pi _{\theta} \left( x,a \right)$:
+**Actor**(policy)： $\pi _{\theta} \left( s, a \right)$:
 
 - input： State，一般用一个向量或矩阵表示
 - output： Action，采取每一个 action 对应的几率
@@ -100,13 +112,15 @@ $\displaystyle \nabla \bar{R}_\theta \approx \frac{1}{N}\sum_{n=1}^N R \left( \t
 
 $ P(\tau|\theta) = p(s_1) \prod_{t=1}^T p(a_t|s_t, \theta) p(r_t, s_{t+1} | s_t, a_t)$，其中 $p(s_1)$ 和 $p(r_t, s_{t+1} | s_t, a_t)$ 由 $E$ 给出
 
-$\displaystyle \nabla \log P(\tau|\theta) = \sum_{t=1}^T \nabla \log (a_t|s_t, \theta)$
+所以有：
+
+ $\displaystyle \nabla \log P(\tau|\theta) = \sum_{t=1}^T \nabla \log p(a_t|s_t, \theta)$
 
 
 
 所以：
 
-$\displaystyle \nabla\bar{R}_\theta \approx \frac{1}{N} \sum_{n=1}^{N} \sum_{t=1}^{T^n} R(\tau^n) \nabla \log(a_t^n|s_t^n, \theta)$
+$\displaystyle \nabla\bar{R}_\theta \approx \frac{1}{N} \sum_{n=1}^{N} \sum_{t=1}^{T^n} R(\tau^n) \nabla \log p(a_t^n|s_t^n, \theta)$
 
 即进行N局游戏后，每局游戏每一时刻采取策略的概率与该局游戏总收益的乘积的和的梯度。
 
@@ -128,7 +142,7 @@ $\displaystyle \nabla\bar{R}_\theta \approx \frac{1}{N} \sum_{n=1}^{N} \sum_{t=1
 
 可以考虑添加 baseline ，设计超参 $b$ 并修正为上式为：
 
-$\displaystyle \nabla\bar{R}_\theta \approx \frac{1}{N} \sum_{n=1}^{N} \sum_{t=1}^{T^n} \left(R(\tau^n) - b \right) \nabla \log(a_t^n|s_t^n, \theta)$
+$\displaystyle \nabla\bar{R}_\theta \approx \frac{1}{N} \sum_{n=1}^{N} \sum_{t=1}^{T^n} \left(R(\tau^n) - b \right) \nabla \log p_\theta(a_t^n|s_t^n)$
 
 事实上，参数 $b$ 可以是常数，也可以与 $s$ 有关。
 
@@ -138,11 +152,11 @@ $\displaystyle \nabla\bar{R}_\theta \approx \frac{1}{N} \sum_{n=1}^{N} \sum_{t=1
 
 对于某一episode $\tau $ 某一时刻 $t$ ，给予整个 $\tau$ 的 reward 可能是不公平的，因为 $s_t$ 下的任何决策的好坏似乎和 $t$ 时刻前已经积累的reward是无关的。修正上式（维护后缀和）为：
 
-$\displaystyle \nabla\bar{R}_\theta \approx \frac{1}{N} \sum_{n=1}^{N} \sum_{t=1}^{T^n} \left( \sum_{i=t}^{T} r_i^n - b \right) \nabla \log(a_t^n|s_t^n, \theta)$
+$\displaystyle \nabla\bar{R}_\theta \approx \frac{1}{N} \sum_{n=1}^{N} \sum_{t=1}^{T^n} \left( \sum_{i=t}^{T} r_i^n - b \right) \nabla \log p_\theta(a_t^n|s_t^n)$
 
 更进一步，可以考虑将较 $t$ 时刻过于遥远的 reward 打一个折扣，设计超参 $\gamma < 1$ ，修正上式为： 
 
-$\displaystyle \nabla\bar{R}_\theta \approx \frac{1}{N} \sum_{n=1}^{N} \sum_{t=1}^{T^n} A^\theta(s_t, a_t) \nabla \log(a_t^n|s_t^n, \theta)$
+$\displaystyle \nabla\bar{R}_\theta \approx \frac{1}{N} \sum_{n=1}^{N} \sum_{t=1}^{T^n} A^\theta(s_t, a_t) \nabla \log p_\theta(a_t^n|s_t^n)$
 
 其中： $A^\theta(s_t, a_t) = \sum_{i=t}^{T} \gamma^{i-t}r_i^n - b $
 
@@ -170,11 +184,11 @@ $\displaystyle \mathbb{E}_{x \sim p}[f(x)] = \int {f(x)p(x) } dx = \int f(x)\fra
 
 同理，如果采用 $ A^\theta(s_t, a_t) $ 评估 reward ，则有：
 
- $\displaystyle \nabla \bar{R}_\theta = \mathbb{E}_{(s_t,a_t) \sim \pi_\theta} \left[ A^\theta(s_t, a_t) \nabla \log(a_t^n|s_t^n, \theta) \right] \\             \displaystyle = \mathbb{E}_{(s_t,a_t) \sim \pi_{\theta^\prime}} \left[ \frac{p_\theta(s_t,a_t)}{p_{\theta^\prime}(s_t,a_t)} A^\theta(s_t, a_t) \nabla \log(a_t^n|s_t^n, \theta) \right] \\                                                                        \displaystyle = \mathbb{E}_{(s_t,a_t) \sim \pi_{\theta^\prime}} \left[ \frac{p_\theta(s_t|a_t)}{p_{\theta^\prime}(s_t|a_t)} \frac{p_\theta(s_t)}{p_{\theta^\prime(s_t)}} A^\theta(s_t, a_t) \nabla \log(a_t^n|s_t^n, \theta) \right]$
+ $\displaystyle \nabla \bar{R}_\theta = \mathbb{E}_{(s_t,a_t) \sim \pi_\theta} \left[ A^\theta(s_t, a_t) \nabla \log p_\theta(a_t^n|s_t^n) \right] \\             \displaystyle = \mathbb{E}_{(s_t,a_t) \sim \pi_{\theta^\prime}} \left[ \frac{p_\theta(s_t,a_t)}{p_{\theta^\prime}(s_t,a_t)} A^\theta(s_t, a_t) \nabla \log p_\theta(a_t^n|s_t^n) \right] \\                                                                        \displaystyle = \mathbb{E}_{(s_t,a_t) \sim \pi_{\theta^\prime}} \left[ \frac{p_\theta(s_t|a_t)}{p_{\theta^\prime}(s_t|a_t)} \frac{p_\theta(s_t)}{p_{\theta^\prime(s_t)}} A^\theta(s_t, a_t) \nabla \log p_\theta(a_t^n|s_t^n) \right]$
 
 在 $\theta^\prime \approx \theta$ （行为上而非参数上）时，假设$A^{\theta^\prime}(s_t,a_t) \approx A^\theta (s_t,a_t)$ 和 $p_\theta(s_t) \approx p_{\theta^\prime}(s_t)$ ，则有：
 
-$\displaystyle \nabla \bar{R}_\theta \approx \mathbb{E}_{(s_t,a_t) \sim \pi_{\theta^\prime}} \left[ \frac{p_\theta(s_t|a_t)}{p_{\theta^\prime}(s_t|a_t)}  A^{\theta^\prime}(s_t, a_t) \nabla \log(a_t^n|s_t^n, \theta) \right]$
+$\displaystyle \nabla \bar{R}_\theta \approx \mathbb{E}_{(s_t,a_t) \sim \pi_{\theta^\prime}} \left[ \frac{p_\theta(s_t|a_t)}{p_{\theta^\prime}(s_t|a_t)}  A^{\theta^\prime}(s_t, a_t) \nabla \log p_\theta(a_t^n|s_t^n) \right]$
 
 PPO/TRPO/PPO2
 
@@ -184,18 +198,20 @@ PPO：Policy-Based
 
 ### Q-learning
 
-**Critic**(Value-based)： $V^\pi(s)$ 表征 $\pi$ 策略下 $s$ 的期望 reward ， critic 是与 actor 绑定的。
+**Critic**(Value-based)：
 
-State value function  $V^\pi(s)$：
+State value function  $V^\pi(s)$：在 $s$ 下使用 $\pi$ 继续游戏的期望累计收益。
 
 - Monte-Carlo (MC) based approach：更新 $V^\pi(s_t) = \sum_{i\geq t} r_i$ 。至少要等到游戏结束才能更新 network ，耗费时间长。
 - Temporal-difference (TD) approach：预测 $V^\pi(s_{t+1})$，再更新 $V^\pi(s_t) \leftarrow V^\pi(s_{t+1})+r_t$。拥有更小的variance，但 $V^\pi(s_{t+1})$ 不一定估的准。
 
-State-action value function  $Q^\pi(s, a)$：同样可以用TD或MC的方式。
+State-action value function  $Q^\pi(s, a)$：在 $s$ 下进行 $a$ ，并使用 $\pi$ 继续游戏的期望累计收益。同样可以用TD或MC的方式。
+
+注意 critic 永远是与 actor ($\pi$)绑定的，而不是对环境的客观评估。
 
 
 
-如果对于任意 $s$，定义 $\pi^\prime(s) = \arg\max_a Q^\pi(s,a)$，则有恒等式：
+如果对于任意 $s$，定义 $\pi^\prime(s) = \arg\max_a Q^\pi(s,a)$，则在期望条件下，有恒不等式：
 
 $\displaystyle V^\pi(s_t) = Q^\pi(s_t,\pi(s_t)) \leq \max_a Q^\pi(s_t,a) = Q^\pi(s, \pi^\prime(s_t)) = r_t + V^\pi(s_{t+1}) \\                                        = r_t + Q^\pi(s_{t+1}, \pi(s_{t+1}))\leq r_t + \max_aQ^\pi(s_{t+1}, a) = \cdots \leq V^{\pi^\prime}(s_t) $
 
@@ -326,5 +342,49 @@ DQN + DDQN + Prioritized DDQN + Dueling DDQN + A3C(multi-step) +Distributional D
 
 ### Actor Critic
 
-[WIP]
+在 policy gradient 中，我们有：
 
+$\displaystyle \nabla\bar{R}_\theta \approx \frac{1}{N} \sum_{n=1}^{N} \sum_{t=1}^{T^n} A^\theta(s_t, a_t) \nabla \log p_\theta(a_t^n|s_t^n)$
+
+并使用如下方式估算 $A^\theta$ ： $A^\theta(s_t, a_t) = \sum_{i=t}^{T} \gamma^{i-t}r_i^n - b $
+
+然而 $A^\theta$ 是具有随机性的，本质上应该取足够次数进行 sample，或者直接使用期望。
+
+
+
+在 Q-learning 中，我们有：
+
+- State value function  $V^\pi(s)$：在 $s$ 下使用 $\pi$ 继续游戏的期望累计收益。输入 $s$ ，输出一个 value。
+- State-action value function  $Q^\pi(s, a)$：在 $s$ 下进行 $a$ ，并使用 $\pi$ 继续游戏的期望累计收益。输入 $s$ ，输出每一个 $a$ 对应的 value。
+
+
+
+**Actor-Critic**：
+
+考虑将上述两者结合，则有：
+
+$\displaystyle \nabla\bar{R}_\theta \approx \frac{1}{N} \sum_{n=1}^{N} \sum_{t=1}^{T^n} \left( Q^{\pi_\theta}(s_t^n,a_t^n) - V^{\pi_\theta}(s_t^n) \right) \nabla \log p_\theta(a_t^n|s_t^n)$
+
+
+
+**Advantage Actor-Critic**：
+
+观察到： $\displaystyle Q^\pi(s_t, a_t) =  \mathbb{E} \left[ r_t + V^\pi(s_{t+1}) \right] \approx r_t + V^\pi(s_{t+1})$
+
+为了减少训练的网络数量，我们考虑使用 $V$ 代替 $Q$，则有：
+
+$\displaystyle \nabla\bar{R}_\theta \approx \frac{1}{N} \sum_{n=1}^{N} \sum_{t=1}^{T^n} \left( r_t^n + V^{\pi_\theta}(s_{t+1}^n) - V^{\pi_\theta}(s_t^n) \right) \nabla \log p_\theta(a_t^n|s_t^n)$
+
+同时，上式中的 $r_t$ 的 variance 依然比原式中 $A^\theta$ 更小，加强了训练的稳定性。
+
+考虑到 actor $\pi(s)$ 和 critic $V(s)$ 输入是一致的，可以将两个网络放在一起直接训练。输出分别是 $V^\pi(s)$ 和各个 action 的 possibility。对 $s$ 很大的情况（如图像）尤为实用。
+
+
+
+**Asynchronous Advantage Actor-Critic**：
+
+影响RL训练时间的瓶颈往往是与 environment 交互取得数据的过程，为了加快这一过程可以考虑并行采样。
+
+Asynchronous Advantage Actor-Critic会使用一个 global network（包含 actor 和 critic），和若干个 worker 。
+
+每个 worker 会不断地从 global network 中拷贝参数，并与环境交互取得 sample data ，计算梯度后回传 global network。
